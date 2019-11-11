@@ -70,16 +70,20 @@ public class IAsyncTreeModel extends AbstractTreeModel implements Identifiable, 
                     IAsyncTreeModel.this.treeNodesChanged(event.getTreePath(), event.getChildIndices(), event.getChildren());
                 }
                 else if (node.isLoadingRequired()) {
+                    IFileStructurePopup.log("isLoadingRequired");
                     // update the object presentation only, if its children are not requested yet
                     IAsyncTreeModel.this.treeNodesChanged(event.getTreePath(), null, null);
                 }
                 else if (type == EventType.NodesInserted) {
+                    IFileStructurePopup.log("NodesInserted");
                     processor.process(new CmdGetChildren("Insert children", node, false));
                 }
                 else if (type == EventType.NodesRemoved) {
+                    IFileStructurePopup.log("NodesRemoved");
                     processor.process(new CmdGetChildren("Remove children", node, false));
                 }
                 else {
+                    IFileStructurePopup.log("NodesUpdate");
                     processor.process(new CmdGetChildren("Update children", node, true));
                 }
             });
@@ -322,6 +326,7 @@ public class IAsyncTreeModel extends AbstractTreeModel implements Identifiable, 
         if (disposed) return rejectedPromise();
         return node.queue.promise(processor, () -> {
             node.setLoading(!showLoadingNode ? null : new Node(new LoadingNode(), LeafState.ALWAYS));
+            IFileStructurePopup.log("Load children");
             return new CmdGetChildren("Load children", node, false);
         });
     }
@@ -335,10 +340,9 @@ public class IAsyncTreeModel extends AbstractTreeModel implements Identifiable, 
         Node node = getEntry(object);
         if (node == null) return emptyList();
         if (node.isLoadingRequired()) promiseChildren(node);
-        System.out.println(node.paths.toString()+"node path");
-        System.out.println(node.getChildren().size()+"node child");
         return node.getChildren();
     }
+
 
     @NotNull
     private TreeModelEvent createEvent(@NotNull TreePath path, Map<Object, Integer> map) {
@@ -523,6 +527,7 @@ public class IAsyncTreeModel extends AbstractTreeModel implements Identifiable, 
                 tree.fixEqualButNotSame(root, loaded.object);
                 LOG.debug("same root: ", root.object);
                 if (!root.isLoadingRequired()) processor.process(new CmdGetChildren("Update root children", root, true));
+                IFileStructurePopup.log("Update root children");
                 tree.queue.done(this, root);
                 return;
             }
@@ -583,9 +588,11 @@ public class IAsyncTreeModel extends AbstractTreeModel implements Identifiable, 
                 ChildrenProvider<?> provider = (ChildrenProvider<?>)model;
                 List<?> children = provider.getChildren(object);
                 if (children == null) throw new ProcessCanceledException(); // cancel this command
+                IFileStructurePopup.log("getNode oldChildren"+children.toString());
                 loaded.children = load(children.size(), index -> children.get(index));
             }
             else {
+                IFileStructurePopup.log("getNode oldChildren"+model.toString());
                 loaded.children = load(model.getChildCount(object), index -> model.getChild(object, index));
             }
             return loaded;
@@ -629,6 +636,9 @@ public class IAsyncTreeModel extends AbstractTreeModel implements Identifiable, 
             }
             List<Node> oldChildren = node.getChildren();
             List<Node> newChildren = loaded.getChildren();
+            IFileStructurePopup.log("setNode oldChildren"+loaded.toString());
+            IFileStructurePopup.log("setNode oldChildren"+oldChildren.toString());
+            IFileStructurePopup.log("setNode newChildren"+newChildren.toString());
             if (oldChildren.isEmpty() && newChildren.isEmpty()) {
                 node.setLeafState(loaded.leafState);
                 treeNodesChanged(node, null);
@@ -719,6 +729,7 @@ public class IAsyncTreeModel extends AbstractTreeModel implements Identifiable, 
             if (!reload.isEmpty()) {
                 for (Node child : newChildren) {
                     if (reload.contains(child.object)) {
+                        IFileStructurePopup.log("Update children recursively");
                         processor.process(new CmdGetChildren("Update children recursively", child, true));
                     }
                 }
@@ -845,6 +856,10 @@ public class IAsyncTreeModel extends AbstractTreeModel implements Identifiable, 
             this.leafState = LeafState.NEVER;
             this.children = children;
             this.loading = null;
+            IFileStructurePopup.log("setChildren");
+            for (Node child : children) {
+                IFileStructurePopup.log(child.paths.toString());
+            }
         }
 
         private void setLoading(Node loading) {

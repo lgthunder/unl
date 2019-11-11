@@ -25,7 +25,7 @@
   </component>
   <component name="ProjectId" id="1THYcbjtboct2ctkhLOIjjNHcgd" />
   <component name="PropertiesComponent">
-    <property name="settings.editor.selected.configurable" value="editor.preferences.completion" />
+    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -69,45 +69,103 @@
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/com/IFileStructurePopup.java</url>
-          <line>559</line>
+          <line>568</line>
           <option name="timeStamp" value="32" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/com/IFileStructurePopup.java</url>
-          <line>640</line>
+          <line>650</line>
           <option name="timeStamp" value="33" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/com/IFileStructurePopup.java</url>
-          <line>646</line>
+          <line>657</line>
           <option name="timeStamp" value="35" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/com/IFileStructurePopup.java</url>
-          <line>655</line>
-          <option name="timeStamp" value="36" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
           <url>jar://$APPLICATION_HOME_DIR$/lib/platform-impl.jar!/com/intellij/ide/util/StructureViewCompositeModel.class</url>
           <line>257</line>
           <option name="timeStamp" value="48" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
+        <line-breakpoint type="java-line">
           <url>jar://$APPLICATION_HOME_DIR$/lib/platform-impl.jar!/com/intellij/ide/util/StructureViewCompositeModel.class</url>
           <line>213</line>
           <option name="timeStamp" value="49" />
         </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/com/IFileStructurePopup.java</url>
+          <line>668</line>
+          <option name="timeStamp" value="63" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$APPLICATION_HOME_DIR$/lib/platform-impl.jar!/com/intellij/ide/actions/ViewStructureAction.class</url>
+          <line>139</line>
+          <option name="timeStamp" value="65" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$APPLICATION_HOME_DIR$/lib/platform-impl.jar!/com/intellij/ide/structureView/impl/common/PsiTreeElementBase.class</url>
+          <line>59</line>
+          <option name="timeStamp" value="75" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$APPLICATION_HOME_DIR$/lib/util.jar!/com/intellij/openapi/util/Iconable.class</url>
+          <line>31</line>
+          <option name="timeStamp" value="78" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$APPLICATION_HOME_DIR$/lib/platform-impl.jar!/com/intellij/psi/impl/ElementBase.class</url>
+          <line>105</line>
+          <option name="timeStamp" value="88" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/com/IStructureTreeModel.java</url>
+          <line>445</line>
+          <option name="timeStamp" value="89" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$APPLICATION_HOME_DIR$/lib/platform-api.jar!/com/intellij/ide/projectView/PresentationData.class</url>
+          <line>107</line>
+          <option name="timeStamp" value="90" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$APPLICATION_HOME_DIR$/plugins/java/lib/java-impl.jar!/com/intellij/ide/JavaFileIconPatcher.class</url>
+          <line>48</line>
+          <option name="timeStamp" value="91" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$APPLICATION_HOME_DIR$/lib/platform-impl.jar!/com/intellij/psi/impl/ElementBase.class</url>
+          <line>131</line>
+          <option name="timeStamp" value="93" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$APPLICATION_HOME_DIR$/lib/platform-impl.jar!/com/intellij/psi/impl/ElementBase.class</url>
+          <line>213</line>
+          <option name="timeStamp" value="94" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$APPLICATION_HOME_DIR$/plugins/java/lib/java-impl.jar!/com/intellij/psi/impl/PsiClassImplUtil.class</url>
+          <line>457</line>
+          <option name="timeStamp" value="97" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$APPLICATION_HOME_DIR$/plugins/java/lib/java-impl.jar!/com/intellij/psi/impl/PsiClassImplUtil.class</url>
+          <line>447</line>
+          <option name="timeStamp" value="99" />
+        </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/com/IAsyncTreeModel.java</url>
-          <line>334</line>
-          <option name="timeStamp" value="52" />
+          <url>file://$PROJECT_DIR$/src/com/IFileStructurePopup.java</url>
+          <line>818</line>
+          <option name="timeStamp" value="103" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="#org.jetbrains.idea.devkit.run.PluginConfigurationType">
-        <watch expression="visibleNodes" language="JAVA" />
-        <watch expression="node.getChildren()" language="JAVA" />
+        <watch expression="((PsiMethodTreeElement) structureViewTreeElement).getElement().getNameIdentifier().getText()" language="JAVA" />
+        <watch expression="((PsiMethodTreeElement) structureViewTreeElement).getElement().getName()" language="JAVA" />
+        <watch expression="((PsiFieldTreeElement) structureViewTreeElement).getPresentableText()" language="JAVA" />
+        <watch expression="((PsiFieldTreeElement) structureViewTreeElement).getElement().getTextRange()" language="JAVA" />
+        <watch expression="((PsiFieldTreeElement) structureViewTreeElement).getElement().getNameIdentifier()" language="JAVA" />
       </configuration>
     </watches-manager>
   </component>

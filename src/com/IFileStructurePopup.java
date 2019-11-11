@@ -1,14 +1,21 @@
 package com;
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
+import com.intellij.designer.clipboard.SimpleTransferable;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.*;
 import com.intellij.ide.actions.ViewStructureAction;
+import com.intellij.ide.dnd.FileCopyPasteUtil;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.ide.structureView.ModelListener;
 import com.intellij.ide.structureView.StructureView;
 import com.intellij.ide.structureView.StructureViewModel;
+import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.structureView.impl.common.PsiTreeElementBase;
+import com.intellij.ide.structureView.impl.java.JavaClassTreeElement;
+import com.intellij.ide.structureView.impl.java.JavaFileTreeElement;
+import com.intellij.ide.structureView.impl.java.PsiFieldTreeElement;
+import com.intellij.ide.structureView.impl.java.PsiMethodTreeElement;
 import com.intellij.ide.structureView.newStructureView.StructureViewComponent;
 import com.intellij.ide.structureView.newStructureView.TreeActionWrapper;
 import com.intellij.ide.structureView.newStructureView.TreeActionsOwner;
@@ -40,12 +47,10 @@ import com.intellij.openapi.util.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.pom.Navigatable;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.StubBasedPsiElement;
+import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.MinusculeMatcher;
 import com.intellij.psi.codeStyle.NameUtil;
+import com.intellij.psi.impl.ElementPresentationUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.ui.*;
@@ -59,6 +64,7 @@ import com.intellij.ui.tree.StructureTreeModel;
 import com.intellij.ui.tree.TreeVisitor;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
+import com.intellij.uiDesigner.SerializedComponentData;
 import com.intellij.util.*;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.JBIterable;
@@ -68,6 +74,9 @@ import com.intellij.util.ui.TextTransferable;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.xml.util.XmlStringUtil;
+import com.thaiopensource.relaxng.translate.test.Compare;
+import org.apache.commons.lang.text.StrBuilder;
+import org.jdom.output.XMLOutputter;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,7 +93,9 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.VariableHeightLayoutCache;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
@@ -115,7 +126,7 @@ public class IFileStructurePopup implements Disposable, TreeActionsOwner {
     private final FilteringTreeStructure myFilteringStructure;
 
     private final IAsyncTreeModel myAsyncTreeModel;
-    private final StructureTreeModel myStructureTreeModel;
+    private final IStructureTreeModel myStructureTreeModel;
     private final TreeSpeedSearch mySpeedSearch;
 
     private final Object myInitialElement;
@@ -193,7 +204,7 @@ public class IFileStructurePopup implements Disposable, TreeActionsOwner {
         FileStructurePopupFilter filter = new FileStructurePopupFilter();
         myFilteringStructure = new FilteringTreeStructure(filter, myTreeStructure, false);
 
-        myStructureTreeModel = new StructureTreeModel<>(myFilteringStructure, this);
+        myStructureTreeModel = new IStructureTreeModel<>(myFilteringStructure, this);
         myAsyncTreeModel = new IAsyncTreeModel(myStructureTreeModel, this);
         myAsyncTreeModel.setRootImmediately(myStructureTreeModel.getRootImmediately());
         myTree = new MyTree(myAsyncTreeModel);
@@ -287,14 +298,12 @@ public class IFileStructurePopup implements Disposable, TreeActionsOwner {
 
             @Override
             public void treeCollapsed(TreeExpansionEvent event) {
-                log("treeCollapsed");
             }
         });
 
         myTree.addPropertyChangeListener(new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                log("propertyChange:"+evt.getPropertyName());
             }
         });
 
@@ -319,7 +328,6 @@ public class IFileStructurePopup implements Disposable, TreeActionsOwner {
 
         Disposer.register(myPopup, this);
         Disposer.register(myPopup, () -> {
-            log("myTreeHasBuilt.isDone():" + myTreeHasBuilt.isDone());
             if (!myTreeHasBuilt.isDone()) {
                 myTreeHasBuilt.setRejected();
             }
@@ -336,11 +344,12 @@ public class IFileStructurePopup implements Disposable, TreeActionsOwner {
             myTreeHasBuilt.setDone();
             installUpdater();
 
-        })).onSuccess(path->   log("rebuildAndSelect done"));
+        })).onSuccess(path -> log("rebuildAndSelect done"));
     }
 
-    public void log(String tag) {
-        System.out.println("=================" + tag + "==============================");
+    public static void log(String tag) {
+        return;
+//        System.out.println("=================" + tag + "==============================");
 //        getFiled(myTree);
     }
 
@@ -577,7 +586,7 @@ public class IFileStructurePopup implements Disposable, TreeActionsOwner {
         }
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.add(chkPanel, BorderLayout.WEST);
-
+        topPanel.add(createUmlButton());
         topPanel.add(createSettingsButton(), BorderLayout.EAST);
 
         topPanel.setBackground(JBUI.CurrentTheme.Popup.toolbarPanelColor());
@@ -585,6 +594,7 @@ public class IFileStructurePopup implements Disposable, TreeActionsOwner {
         prefSize.height = JBUI.CurrentTheme.Popup.toolbarHeight();
         topPanel.setPreferredSize(prefSize);
         topPanel.setBorder(JBUI.Borders.emptyLeft(UIUtil.DEFAULT_HGAP));
+
 
         panel.add(topPanel, BorderLayout.NORTH);
         JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myTree);
@@ -639,6 +649,7 @@ public class IFileStructurePopup implements Disposable, TreeActionsOwner {
 
     public void getFiled(Tree tree) {
         String filedName = "treeState";
+        System.out.println("treeState");
         TreeUI ui = tree.getUI();
         Field field = null;
         Class aclass = ui.getClass();
@@ -658,7 +669,6 @@ public class IFileStructurePopup implements Disposable, TreeActionsOwner {
             VariableHeightLayoutCache cache = (VariableHeightLayoutCache) field.get(ui);
             for (int i = 0; i < cache.getRowCount(); i++) {
                 TreePath treePath = cache.getPathForRow(i);
-                System.out.println(treePath.toString());
             }
         } catch (IllegalAccessException e) {
             e.printStackTrace();
@@ -733,6 +743,119 @@ public class IFileStructurePopup implements Disposable, TreeActionsOwner {
         }.installOn(label);
         return label;
     }
+
+    @NotNull
+    private JComponent createUmlButton() {
+        JLabel label = new JLabel(AllIcons.General.GearPlain);
+        label.setBorder(JBUI.Borders.empty(0, 4));
+        label.setHorizontalAlignment(SwingConstants.RIGHT);
+        label.setVerticalAlignment(SwingConstants.CENTER);
+
+        new ClickListener() {
+            @Override
+            public boolean onClick(@NotNull MouseEvent event, int clickCount) {
+//                getFiled(myTree);
+                PsiClassOwner element = ((JavaFileTreeElement) myTreeModel.getRoot()).getElement();
+                if (element == null) return true;
+                PsiClass[] classes = element.getClasses();
+                ArrayList<StructureViewTreeElement> result = new ArrayList<>();
+
+                Transferable data = new StringSelection(setRootElement(new JavaClassTreeElement(classes[0],false)));
+                CopyPasteManager.getInstance().setContents(data);
+                return true;
+            }
+        }.installOn(label);
+        return label;
+    }
+
+    public String getClassKindString(PsiClass psiClass) {
+        if (psiClass.isInterface()) return "Interface";
+        if (psiClass.isEnum()) return "Enum";
+        if (psiClass.isAnnotationType()) return "Annotation";
+        return "Class";
+    }
+
+
+    private String setRootElement(JavaClassTreeElement element) {
+        StringBuilder builder = new StringBuilder("");
+        builder.append(getClassKindString(element.getElement()));
+        builder.append("\n");
+        builder.append(element.getPresentableText());
+        builder.append("\n");
+        builder.append(parseClassContent(element));
+    return builder.toString();
+    }
+
+    private static List<String> ignoreMethods =new ArrayList<>();
+    static {
+        ignoreMethods.add("equals");
+        ignoreMethods.add("hashCode");
+        ignoreMethods.add("toString");
+    }
+    private StringBuilder parseClassContent(JavaClassTreeElement element){
+        StringBuilder builder = new StringBuilder("");
+        int field = 0;
+        int method = 0;
+        int aclass = 0;
+        for (StructureViewTreeElement structureViewTreeElement : element.getChildrenBase()) {
+
+            if (structureViewTreeElement instanceof PsiMethodTreeElement) {
+                if ( method == 0) {
+                    builder.append("--\n");
+                }
+                method++;
+                if(ignoreMethods.contains(((PsiMethodTreeElement) structureViewTreeElement).getElement().getName())){
+                    continue;
+                }
+                String left = ((PsiMethodTreeElement) structureViewTreeElement).isPublic() ? "+" : "-";
+                builder.append(left+structureViewTreeElement.getPresentation().getPresentableText());
+                builder.append("\n");
+            }
+            if (structureViewTreeElement instanceof PsiFieldTreeElement) {
+                if (field == 0) {
+                    builder.append("--\n");
+                }
+                field++;
+                String left = ((PsiFieldTreeElement) structureViewTreeElement).isPublic() ? "+" : "-";
+                String[] name =structureViewTreeElement.getPresentation().getPresentableText().split("=");
+                if(name.length>2){
+                    builder.append(left+name[0]);
+                }else{
+                    builder.append(left+structureViewTreeElement.getPresentation().getPresentableText());
+                }
+
+
+                builder.append("\n");
+            }
+
+            if (structureViewTreeElement instanceof JavaClassTreeElement) {
+                if (aclass == 0) {
+                    builder.append("--\n");
+                    aclass++;
+                }
+                builder.append(parseClass((JavaClassTreeElement) structureViewTreeElement));
+                builder.append("\n");
+            }
+
+        }
+        return builder;
+    }
+
+    private StringBuilder parseClass(JavaClassTreeElement element) {
+        StringBuilder builder = new StringBuilder("{innerclass");
+        builder.append("\n");
+        builder.append(getClassKindString(element.getElement()));
+        builder.append("\n");
+        builder.append(element.getPresentableText());
+        builder.append("\n");
+        builder.append(parseClassContent(element));
+        builder.append("innerclass}");
+        return builder;
+
+    }
+
+
+    private static final DataFlavor DATA_FLAVOR = FileCopyPasteUtil.createJvmDataFlavor(SerializedComponentData.class);
 
     private List<AnAction> createSorters() {
         List<AnAction> actions = new ArrayList<>();
@@ -898,12 +1021,13 @@ public class IFileStructurePopup implements Disposable, TreeActionsOwner {
                                                     TreeUtil.ensureSelection(myTree);
                                                     mySpeedSearch.refreshSelection();
                                                     result.setResult(p);
-                                                    log("TreeUtil.expand:"+myTreeHasBuilt.isDone());
+                                                    log("TreeUtil.expand:" + myTreeHasBuilt.isDone());
                                                 })));
             } else {
                 myTreeStructure.rebuildTree();
-                myStructureTreeModel.invalidate().onSuccess(res -> {rebuildAndSelect(true, selection).processed(result);
-                   });
+                myStructureTreeModel.invalidate().onSuccess(res -> {
+                    rebuildAndSelect(true, selection).processed(result);
+                });
             }
         });
         return result;

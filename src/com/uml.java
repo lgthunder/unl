@@ -22,6 +22,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.PlaceHolder;
@@ -69,7 +70,10 @@ public class uml extends AnAction {
         StructureViewModel treeModel;
         if (builder instanceof TreeBasedStructureViewBuilder) {
             structureView = null;
-            treeModel = ((TreeBasedStructureViewBuilder)builder).createStructureViewModel(EditorUtil.getEditorEx(fileEditor));
+//            treeModel = ((TreeBasedStructureViewBuilder)builder).createStructureViewModel(EditorUtil.getEditorEx(fileEditor));
+            VirtualFile virtualFile = fileEditor.getFile();
+            PsiFile psiFile = ObjectUtils.notNull(PsiManager.getInstance(project).findFile(virtualFile));
+            treeModel =  new IJavaFileTreeModel((PsiJavaFile)psiFile,EditorUtil.getEditorEx(fileEditor));
         }
         else {
             structureView = builder.createStructureView(fileEditor, project);
