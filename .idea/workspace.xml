@@ -25,7 +25,10 @@
   </component>
   <component name="ProjectId" id="1THYcbjtboct2ctkhLOIjjNHcgd" />
   <component name="PropertiesComponent">
-    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
+    <property name="project.structure.last.edited" value="SDKs" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.0" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -151,11 +154,6 @@
           <url>jar://$APPLICATION_HOME_DIR$/plugins/java/lib/java-impl.jar!/com/intellij/psi/impl/PsiClassImplUtil.class</url>
           <line>447</line>
           <option name="timeStamp" value="99" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/com/IFileStructurePopup.java</url>
-          <line>818</line>
-          <option name="timeStamp" value="103" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

@@ -540,7 +540,7 @@ public class IFileStructurePopup implements Disposable, TreeActionsOwner {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setPreferredSize(JBUI.size(540, 500));
         JPanel chkPanel = new JPanel(new GridLayout(0, checkBoxCount > 0 && checkBoxCount % 4 == 0 ? checkBoxCount / 2 : 3,
-                JBUIScale.scale(UIUtil.DEFAULT_HGAP), 0));
+                IJBUIScale.scale(UIUtil.DEFAULT_HGAP), 0));
         chkPanel.setOpaque(false);
 
         Shortcut[] F4 = ActionManager.getInstance().getAction(IdeActions.ACTION_EDIT_SOURCE).getShortcutSet().getShortcuts();
@@ -818,7 +818,7 @@ public class IFileStructurePopup implements Disposable, TreeActionsOwner {
                 field++;
                 String left = ((PsiFieldTreeElement) structureViewTreeElement).isPublic() ? "+" : "-";
                 String[] name =structureViewTreeElement.getPresentation().getPresentableText().split("=");
-                if(name.length>2){
+                if(name.length>1){
                     builder.append(left+name[0]);
                 }else{
                     builder.append(left+structureViewTreeElement.getPresentation().getPresentableText());
